@@ -14,6 +14,22 @@ window.addEventListener('DOMContentLoaded', () => {
         button.style.pointerEvents = 'none';
         dropdownListsListDefault.style.display = 'none';
 
+    let cookieLocation;
+    const takeLocation = () => {
+        cookieLocation = document.cookie.slice(9, );
+
+        if (!cookieLocation) {
+            localStorage.clear();
+            const promt = prompt('Ввидите локаль - RU EN DE');
+            document.cookie = `locatoin=${promt}`;
+        }
+
+        cookieLocation = document.cookie.slice(9, );
+    };
+
+    takeLocation();
+
+    
     const spiner = () => {
         inputCities.style.display = 'none';
         const style = document.createElement('style');
@@ -57,10 +73,10 @@ window.addEventListener('DOMContentLoaded', () => {
         spinerDiv.classList.add('sk-rotating-plane');
         document.body.prepend(spinerDiv);
     };
-    spiner();
+    
 
     const getDataResponse = () => {
-        return fetch('./db_cities.json');
+            return fetch(`./db_cities.json`);
     };
 
     const whatStatus = (response) => {
@@ -76,11 +92,25 @@ window.addEventListener('DOMContentLoaded', () => {
         const spinerDiv = document.querySelector('.spiner');
         spinerDiv.parentNode.removeChild(spinerDiv);
         const data = JSON.parse(response);
-        return data;
+        localStorage.setItem('data', JSON.stringify(data[cookieLocation]));
+
+        return data[cookieLocation];
     };
 
-    const creatList = (data, lenguage, list, country) => {
-        let obj = data[lenguage];
+    const creatList = (data, list, country) => {
+        let obj = data;
+
+        if (cookieLocation === 'RU') {
+            obj.unshift(...obj.splice(0, 1));
+        }
+        if (cookieLocation === 'DE') {
+            obj.unshift(...obj.splice(1, 1));
+        }
+        if (cookieLocation === 'EN') {
+            obj.unshift(...obj.splice(2, 1));
+        }
+
+
         if (country) {
             obj = obj.filter(elem => elem.country === country);
         }
@@ -107,7 +137,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 <div class="dropdown-lists__count">${obj[i].count}</div>
             `;
             countryBlock.append(countryBlockTotalLine);
-            const objSity = obj[i].cities.sort(sort);
+            // const objSity = obj[i].cities.sort(sort);
             for (let j = 0; j < obj[i].cities.length; j++) {
                 const cityBlock = document.createElement('div');
                 cityBlock.classList.add('dropdown-lists__line');
@@ -195,7 +225,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const dropdownListsCol = dropdownListsListSelect.querySelector('.dropdown-lists__col');
 
-        creatList(data, 'RU', 'default');
+        creatList(data, 'default');
         main.addEventListener('click', (event) => {
 
             let target = event.target;
@@ -226,7 +256,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     dropdownListsCol.innerHTML = '';
                 } else {
                     listAnimationLeft();
-                    creatList(data, 'RU', 'select', 
+                    creatList(data, 'select', 
                     target.children[0] ? target.children[0].textContent : target.textContent); 
                 }
             }
@@ -239,10 +269,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 target.parentNode.classList.contains('dropdown-lists__total-line')) {
                     selectCities.value = target.parentNode.children[0].textContent;
                     if (target.parentNode.classList.contains('dropdown-lists__line')) {
-                        for (let i =0; i < data.RU.length; i++) {
-                            for (let j = 0; j < data.RU[i].cities.length; j++) {
-                                if (data.RU[i].cities[j].name === selectCities.value) {
-                                    button.href = data.RU[i].cities[j].link;
+                        for (let i =0; i < data.length; i++) {
+                            for (let j = 0; j < data[i].cities.length; j++) {
+                                if (data[i].cities[j].name === selectCities.value) {
+                                    button.href = data[i].cities[j].link;
                                     button.style.pointerEvents = 'auto';
                                 }
                             }
@@ -253,17 +283,16 @@ window.addEventListener('DOMContentLoaded', () => {
                 target.classList.contains('dropdown-lists__total-line')) {
                     selectCities.value = target.children[0].textContent;
                     if (target.classList.contains('dropdown-lists__line')) {
-                        for (let i =0; i < data.RU.length; i++) {
-                            for (let j = 0; j < data.RU[i].cities.length; j++) {
-                                if (data.RU[i].cities[j].name === selectCities.value) {
-                                    button.href = data.RU[i].cities[j].link;
+                        for (let i =0; i < data.length; i++) {
+                            for (let j = 0; j < data[i].cities.length; j++) {
+                                if (data[i].cities[j].name === selectCities.value) {
+                                    button.href = data[i].cities[j].link;
                                     button.style.pointerEvents = 'auto';
                                 }
                             }
                         }
                     }
                 }
-                
                 closeButton.style.display = 'block';
                 label.style.display = 'none';
             }
@@ -274,7 +303,7 @@ window.addEventListener('DOMContentLoaded', () => {
             dropdownListsListSelect.style.display = 'none';
             dropdownListsCol.innerHTML = '';
             dropdownListsListAutocomplete.style.display = 'block'; 
-            dropdownAuto(data.RU, event.target.value);
+            dropdownAuto(data, event.target.value);
             if (event.target.value === '') {
                 dropdownListsListAutocomplete.style.display = 'none'; 
                 dropdownListsListDefault.style.display = 'block';
@@ -283,9 +312,18 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    getDataResponse()
-    .then(whatStatus)
-    .then(getData)
-    .then(listHandler)
-    .catch((error => console.warn(error)));
+    let dataStorage = JSON.parse(localStorage.getItem('data'));
+
+    if (dataStorage) {
+        listHandler(dataStorage);
+    } else {
+        spiner();
+        getDataResponse()
+            .then(whatStatus)
+            .then(getData)
+            .then(listHandler)
+            .catch((error => console.warn(error)));
+    }
+
+    
 });
