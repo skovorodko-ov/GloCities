@@ -190,7 +190,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const dropdown = document.querySelector('.dropdown');
         dropdown.style.position = 'relative';
         dropdownListsListSelect.style.display = 'block';
-        dropdownListsListSelect.style.transform = 'translateX(200px)'
+        dropdownListsListSelect.style.transform = 'translateX(200px)';
         const interval = setInterval(() => {
             count += 10;
             dropdownListsListDefault.style.transform = `translateX(-${count}px)`;
@@ -200,7 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 dropdownListsListDefault.style.transform = `translateX(0px)`;
                 clearInterval(interval);
             }
-        }, 10)
+        }, 10);
     };
 
     const listAnimationRight = () => {
@@ -209,7 +209,7 @@ window.addEventListener('DOMContentLoaded', () => {
         dropdown.style.position = 'relative';
         button.style.pointerEvents = 'none';
         dropdownListsListDefault.style.display = 'block';
-        dropdownListsListDefault.style.transform = 'translateX(-400px)'
+        dropdownListsListDefault.style.transform = 'translateX(-400px)';
         const interval = setInterval(() => {
             count += 10;
             dropdownListsListSelect.style.transform = `translateX(${count}px)`;
@@ -218,7 +218,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 dropdownListsListSelect.style.display = 'none';
                 clearInterval(interval);
             }
-        }, 10)
+        }, 10);
     };
 
     const listHandler = (data) => {
