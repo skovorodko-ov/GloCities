@@ -8,10 +8,56 @@ window.addEventListener('DOMContentLoaded', () => {
         dropdownListsListSelect = document.querySelector('.dropdown-lists__list--select'),
         dropdownListsListAutocomplete = document.querySelector('.dropdown-lists__list--autocomplete'),
         button = document.querySelector('.button'),
+        inputCities = document.querySelector('.input-cities'),
         label = document.querySelector('.label');
 
         button.style.pointerEvents = 'none';
         dropdownListsListDefault.style.display = 'none';
+
+    const spiner = () => {
+        inputCities.style.display = 'none';
+        const style = document.createElement('style');
+        style.innerHTML = `
+                body {
+                min-height: 100vh;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                align-content: space-around;
+                }
+                section {
+                flex: 1 1 25%;  
+                }
+                .spiner {
+                    top: 40vh;
+                    position: absolute;
+                }
+                .sk-rotating-plane {
+                width: 4em;
+                height: 4em;
+                margin: auto;
+                background-color:  #337ab7;
+                animation: sk-rotating-plane 1.2s infinite ease-in-out;
+                }
+                @keyframes sk-rotating-plane {
+                0% {
+                    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+                }
+                50% {
+                    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+                }
+                100% {
+                    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+                }
+                }
+        `;
+        document.head.append(style);
+        const spinerDiv = document.createElement('div');
+        spinerDiv.classList.add('spiner');
+        spinerDiv.classList.add('sk-rotating-plane');
+        document.body.prepend(spinerDiv);
+    };
+    spiner();
 
     const getDataResponse = () => {
         return fetch('./db_cities.json');
@@ -26,6 +72,9 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     const getData = (response) => {
+        inputCities.style.display = 'block';
+        const spinerDiv = document.querySelector('.spiner');
+        spinerDiv.parentNode.removeChild(spinerDiv);
         const data = JSON.parse(response);
         return data;
     };
@@ -84,9 +133,12 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (regExp.test(data[i].cities[j].name)) {
                     flag = false;
                     const cityBlock = document.createElement('div');
+                    let string = data[i].cities[j].name;
+                    let stringLength = elem.length;
+                    string = string.slice(0, stringLength).bold() + string.slice(stringLength, );
                     cityBlock.classList.add('dropdown-lists__line');
                     cityBlock.innerHTML = `
-                        <div class="dropdown-lists__city">${data[i].cities[j].name}</div>
+                        <div class="dropdown-lists__city">${string}</div>
                         <div class="dropdown-lists__count">${data[i].cities[j].count}</div>
                     `;
                     dropdownListsCol.append(cityBlock);
@@ -101,7 +153,42 @@ window.addEventListener('DOMContentLoaded', () => {
             `;
             dropdownListsCol.append(cityBlock);
         }
+    };
 
+    const listAnimationLeft = () => {
+        let count = 0;
+        const dropdown = document.querySelector('.dropdown');
+        dropdown.style.position = 'relative';
+        dropdownListsListSelect.style.display = 'block';
+        dropdownListsListSelect.style.transform = 'translateX(200px)'
+        const interval = setInterval(() => {
+            count += 10;
+            dropdownListsListDefault.style.transform = `translateX(-${count}px)`;
+            dropdownListsListSelect.style.transform = `translateX(${400 - count}px)`;
+            if (count === 400) {
+                dropdownListsListDefault.style.display = 'none';
+                dropdownListsListDefault.style.transform = `translateX(0px)`;
+                clearInterval(interval);
+            }
+        }, 10)
+    };
+
+    const listAnimationRight = () => {
+        let count = 0;
+        const dropdown = document.querySelector('.dropdown');
+        dropdown.style.position = 'relative';
+        button.style.pointerEvents = 'none';
+        dropdownListsListDefault.style.display = 'block';
+        dropdownListsListDefault.style.transform = 'translateX(-400px)'
+        const interval = setInterval(() => {
+            count += 10;
+            dropdownListsListSelect.style.transform = `translateX(${count}px)`;
+            dropdownListsListDefault.style.transform = `translateX(-${400 - count}px)`;
+            if (count === 400) {
+                dropdownListsListSelect.style.display = 'none';
+                clearInterval(interval);
+            }
+        }, 10)
     };
 
     const listHandler = (data) => {
@@ -134,15 +221,13 @@ window.addEventListener('DOMContentLoaded', () => {
             target.parentNode.classList.contains('dropdown-lists__total-line')) {
 
                 if (dropdownListsListDefault.style.display === 'none') {
-                    dropdownListsListDefault.style.display = 'block';
-                    dropdownListsListSelect.style.display = 'none';
+                    listAnimationRight();
                     dropdownListsListAutocomplete.style.display = 'none';
                     dropdownListsCol.innerHTML = '';
                 } else {
-                    dropdownListsListDefault.style.display = 'none';
+                    listAnimationLeft();
                     creatList(data, 'RU', 'select', 
-                    target.children[0] ? target.children[0].textContent : target.textContent);
-                    dropdownListsListSelect.style.display = 'block';    
+                    target.children[0] ? target.children[0].textContent : target.textContent); 
                 }
             }
             if (target.classList.contains('dropdown-lists__line') || 
